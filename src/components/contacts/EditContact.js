@@ -3,7 +3,7 @@ import { Consumer } from "../../context";
 import TextInputGroup from "../layout/TextInputGroup";
 import axios from "axios";
 
-class AddContact extends Component {
+class EditContact extends Component {
   state = {
     name: "",
     email: "",
@@ -14,6 +14,28 @@ class AddContact extends Component {
   onChange = e => {
     this.setState({ [e.target.name]: e.target.value });
   };
+
+  async componentDidMount() {
+    const { id } = this.props.match.params;
+    let res;
+    let data;
+    try {
+      res = await axios.get(`https://jsonplaceholder.typicode.com/users/${id}`);
+      data = res.data;
+    } catch (e) {
+      this.props.history.push(`/contact/edit/${id}`);
+      // this.setState({ [e.target.name]: e.target.value });
+      data = this.props;
+      console.log(data);
+    }
+
+    const { name, email, phone } = data;
+    this.setState({
+      name,
+      email,
+      phone
+    });
+  }
 
   onSubmit = async (dispatch, e) => {
     e.preventDefault();
@@ -33,18 +55,17 @@ class AddContact extends Component {
       return;
     }
 
-    const newContact = {
+    const updContact = {
       name,
       email,
       phone
     };
-
-    const res = await axios.post(
-      "https://jsonplaceholder.typicode.com/users",
-      newContact
+    const { id } = this.props.match.params;
+    const res = await axios.put(
+      `https://jsonplaceholder.typicode.com/users/${id}`,
+      updContact
     );
-    dispatch({ type: "ADD_CONTACT", payload: res.data });
-
+    dispatch({ type: "UPDATE_CONTACT", payload: res.data });
     // Clear state
     this.setState({
       name: "",
@@ -65,7 +86,7 @@ class AddContact extends Component {
           const { dispatch } = value;
           return (
             <div className="card mb-3">
-              <div className="card-header">Add Contact</div>
+              <div className="card-header">Edit Contact</div>
               <div className="card-body">
                 <form onSubmit={this.onSubmit.bind(this, dispatch)}>
                   <TextInputGroup
@@ -97,7 +118,7 @@ class AddContact extends Component {
                   <input
                     type="submit"
                     className="btn btn-light btn-block"
-                    value="Add Contact"
+                    value="Update Contact"
                   />
                 </form>
               </div>
@@ -109,4 +130,4 @@ class AddContact extends Component {
   }
 }
 
-export default AddContact;
+export default EditContact;
